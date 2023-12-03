@@ -2,3 +2,6 @@
 vendor/
 /whoami
 dist/
+
+# Terraform files
+**/.terraform/
