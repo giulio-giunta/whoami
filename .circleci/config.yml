@@ -70,7 +70,7 @@ jobs:
   deploy_application:
     working_directory: ~/repo
     docker:
-      - image: cimg/base:2022.04
+      - image: cimg/aws:2023.09
     environment:
       TAG: 0.1.<< pipeline.number >>
       IMAGE: ggiunta/whoami
