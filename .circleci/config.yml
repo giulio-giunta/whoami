@@ -4,7 +4,11 @@ jobs:
   build:
     working_directory: ~/repo
     docker:
+<<<<<<< HEAD
       - image: circleci/golang:1.20.11
+=======
+      - image: circleci/go:1.20.11
+>>>>>>> dev
     environment:
       TAG: 0.1.<< pipeline.number >>
       IMAGE: ggiunta/whoami
