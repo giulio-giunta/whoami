@@ -85,9 +85,9 @@ jobs:
           command: |
             cd kubernetes
             envsubst < deploy.yaml > app.yaml
-            kubectl apply -f kubernetes/ns.yaml
-            kubectl apply -f kubernetes/app.yaml
-            kubectl apply -f kubernetes/service.yaml
+            kubectl apply -f ns.yaml
+            kubectl apply -f app.yaml
+            kubectl apply -f service.yaml
       - run:
           name: Retrieve url and test the application
           command: |
