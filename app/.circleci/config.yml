@@ -36,8 +36,7 @@ jobs:
           name: Build the image
           command: |
             cd whoami
-            $(make build)
-            docker build -t $(IMAGE):$(TAG)
+            make image $(TAG)
       - deploy:
           name: Push image to repository
           command: |
