@@ -12,25 +12,25 @@ jobs:
       - run:
           name: Compile the application
           command: |
-            cd whoami
+            cd app
             make build
       - run:
           name: Run tests
           command: |
             mkdir -p /tmp/test-reports
-            cd whoami
+            cd app
             make test > /tmp/test-reports/tests.xml
       - store_test_results:
           path: /tmp/test-reports
       - run:
           name: Lint the code
           command: |
-            cd whoami
+            cd app
             make check
       - run:
           name: Build the image
           command: |
-            cd whoami
+            cd app
             $(make build)
             docker build -t $(IMAGE):$(TAG)
       - deploy:
