@@ -1,4 +1,6 @@
-.idea
-vendor/
-/whoami
-dist/
+# Whoami executable
+/app/whoami
+
+
+# Terraform files
+**/.terraform/
