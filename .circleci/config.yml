@@ -8,6 +8,7 @@ jobs:
       TAG: 0.1.<< pipeline.number >>
       IMAGE: ggiunta/whoami
     steps:
+      - setup_remote_docker
       - checkout
       - run:
           name: Compile the application
