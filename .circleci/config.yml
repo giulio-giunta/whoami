@@ -10,10 +10,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install Dependencies
-          command: |
-            go mod download
-      - run:
           name: Compile the application
           command: |
             cd whoami
