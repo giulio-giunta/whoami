@@ -32,7 +32,7 @@ jobs:
           name: Build the image
           command: |
             cd app
-            make image $TAG
+            make image $(TAG)
       - deploy:
           name: Push image to repository
           command: |
