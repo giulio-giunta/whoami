@@ -18,11 +18,8 @@ jobs:
       - run:
           name: Run tests
           command: |
-            mkdir -p /tmp/test-reports
             cd app
-            make test > /tmp/test-reports/tests.xml
-      - store_test_results:
-          path: /tmp/test-reports/tests.xml
+            make test
       - run:
           name: Lint the code
           command: |
