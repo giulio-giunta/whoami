@@ -32,12 +32,12 @@ jobs:
           name: Build the image
           command: |
             cd app
-            make image $(TAG)
+            make image $TAG
       - deploy:
           name: Push image to repository
           command: |
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker push $(IMAGE):$(TAG)
+            docker push $IMAGE:$TAG
 
   deploy_infra:
     docker:
