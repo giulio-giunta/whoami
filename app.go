@@ -45,9 +45,6 @@ var (
 	verbose bool
 )
 
-// Version of the application.
-var version = "1.0.0" // Update the version number
-
 func init() {
 	flag.BoolVar(&verbose, "verbose", false, "Enable verbose logging")
 	flag.StringVar(&cert, "cert", "", "give me a certificate")
@@ -72,9 +69,6 @@ type Data struct {
 
 func main() {
 	flag.Parse()
-
-	// Print the version
-	log.Printf("Starting up version %s", version)
 
 	mux := http.NewServeMux()
 	mux.Handle("/data", handle(dataHandler, verbose))
@@ -214,8 +208,6 @@ func dataHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func whoamiHandler(w http.ResponseWriter, r *http.Request) {
-	// Include the version in the response
-	_, _ = fmt.Fprintln(w, "Version:", version)
 
 	queryParams := r.URL.Query()
 
