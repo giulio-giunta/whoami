@@ -16,7 +16,7 @@ spec:
         app: whoami
     spec:
       containers:
-        - image: ggiunta/whoami
+        - image: ggiunta/whoami:$(TAG)
           name: whoami
           ports:
             - containerPort: 80
