@@ -1,0 +1,119 @@
+version: 2.1
+
+jobs:
+  build:
+    working_directory: ~/repo
+    docker:
+      - image: circleci/go:1.20.11
+    environment:
+      TAG: 0.1.<< pipeline.number >>
+      IMAGE: ggiunta/whoami
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: |
+            go mod download
+      - run:
+          name: Compile the application
+          command: |
+            cd whoami
+            make build
+      - run:
+          name: Run tests
+          command: |
+            mkdir -p /tmp/test-reports
+            cd whoami
+            make test > /tmp/test-reports/tests.xml
+      - store_test_results:
+          path: /tmp/test-reports
+      - run:
+          name: Lint the code
+          command: |
+            cd whoami
+            make check
+      - run:
+          name: Build the image
+          command: |
+            cd whoami
+            $(make build)
+            docker build -t $(IMAGE):$(TAG)
+      - deploy:
+          name: Push image to repository
+          command: |
+            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+            docker push $(IMAGE):$(TAG)
+
+  deploy_infra:
+    working_directory: ~/repo
+    docker:
+      - image: cimg/base:2022.04
+    environment:
+      TAG: 0.1.<< pipeline.number >>
+      IMAGE: ggiunta/whoami
+    steps:
+      - checkout
+      - run:
+          name: Create .terraformrc file locally
+          command: |
+            echo "credentials \"app.terraform.io\" {token =
+            \"$TERRAFORM_TOKEN\"}" > $HOME/.terraformrc
+      - run:
+          name: Install Terraform cli
+          command: |
+            sudo apt update && sudo apt install gpg
+            wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            sudo apt update
+            sudo apt install terraform
+      - run:
+          name: Deploy the k8s cluster
+          command: |
+            cd terraform 
+            terraform init
+            terraform apply --auto-approve
+
+  deploy_application:
+    working_directory: ~/repo
+    docker:
+      - image: cimg/base:2022.04
+    environment:
+      TAG: 0.1.<< pipeline.number >>
+      IMAGE: ggiunta/whoami
+    steps:
+      - checkout
+      - run:
+          name: Connect to the cluster
+          command: |
+            aws eks --region eu-west-2 update-kubeconfig --name chillipharm
+      - run:
+          name: Deploy the application
+          command: |
+            cd kubernetes
+            envsubst < deploy.yaml | sponge deploy.yaml
+            kubectl apply -f kubernetes/ns.yaml
+            kubectl apply -f kubernetes/deploy.yaml
+            kubectl apply -f kubernetes/service.yaml
+      - run:
+          name: Retrieve url and test the application
+          command: |
+            url=$(kubectl -n whoami get svc whoami -ojsonpath='{.metadata.name}.svc.{.metadata.namespace}.svc.{.spec.clusterIP}.svc.{.spec.clusterDomain}')
+            response_code=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+            if [ $response_code -eq 200 ]; then
+              echo "Deployment test succeeded."
+            else
+              echo "Deployment test failed. Received HTTP response code $response_code."
+              exit 1
+            fi
+
+workflows:
+  build-deploy:
+    jobs:
+      - build
+      - deploy_infra:
+          requires:
+            - build
+      - deploy_application:
+          requires:
+            - build
+            - deploy_infra
