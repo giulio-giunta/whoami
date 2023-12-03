@@ -30,7 +30,7 @@ jobs:
       - run:
           name: Build the image
           command: |
-            cd whoami
+            cd app
             make image $(TAG)
       - deploy:
           name: Push image to repository
