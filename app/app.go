@@ -208,7 +208,6 @@ func dataHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func whoamiHandler(w http.ResponseWriter, r *http.Request) {
-
 	queryParams := r.URL.Query()
 
 	wait := queryParams.Get("wait")

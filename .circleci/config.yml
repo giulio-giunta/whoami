@@ -2,54 +2,41 @@ version: 2.1
 
 jobs:
   build:
-    working_directory: ~/repo
     docker:
-<<<<<<< HEAD
-      - image: circleci/golang:1.20.11
-=======
-      - image: circleci/go:1.20.11
->>>>>>> dev
+      - image: cimg/go:1.20.11
     environment:
       TAG: 0.1.<< pipeline.number >>
       IMAGE: ggiunta/whoami
     steps:
+      - setup_remote_docker
       - checkout
-      - run:
-          name: Install Dependencies
-          command: |
-            go mod download
       - run:
           name: Compile the application
           command: |
-            cd whoami
+            cd app
             make build
       - run:
           name: Run tests
           command: |
-            mkdir -p /tmp/test-reports
-            cd whoami
-            make test > /tmp/test-reports/tests.xml
-      - store_test_results:
-          path: /tmp/test-reports
+            cd app
+            make test
       - run:
           name: Lint the code
           command: |
-            cd whoami
+            cd app
             make check
       - run:
           name: Build the image
           command: |
-            cd whoami
-            $(make build)
-            docker build -t $(IMAGE):$(TAG)
+            cd app
+            make image $(TAG)
       - deploy:
           name: Push image to repository
           command: |
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker push $(IMAGE):$(TAG)
+            docker push $IMAGE:$TAG
 
   deploy_infra:
-    working_directory: ~/repo
     docker:
       - image: cimg/base:2022.04
     environment:
@@ -63,6 +50,14 @@ jobs:
             echo "credentials \"app.terraform.io\" {token =
             \"$TERRAFORM_TOKEN\"}" > $HOME/.terraformrc
       - run:
+          name: Install Terraform cli
+          command: |
+            sudo apt update && sudo apt install gpg
+            wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            sudo apt update
+            sudo apt install terraform
+      - run:
           name: Deploy the k8s cluster
           command: |
             cd terraform 
@@ -72,7 +67,7 @@ jobs:
   deploy_application:
     working_directory: ~/repo
     docker:
-      - image: cimg/base:2022.04
+      - image: cimg/aws:2023.09
     environment:
       TAG: 0.1.<< pipeline.number >>
       IMAGE: ggiunta/whoami
@@ -86,16 +81,17 @@ jobs:
           name: Deploy the application
           command: |
             cd kubernetes
-            envsubst < deploy.yaml | sponge deploy.yaml
-            kubectl apply -f kubernetes/ns.yaml
-            kubectl apply -f kubernetes/deploy.yaml
-            kubectl apply -f kubernetes/service.yaml
+            envsubst < deploy.yaml > app.yaml
+            kubectl apply -f ns.yaml
+            kubectl apply -f app.yaml
+            kubectl apply -f service.yaml
       - run:
           name: Retrieve url and test the application
           command: |
-            url=$(kubectl -n whoami get svc whoami -ojsonpath='{.metadata.name}.svc.{.metadata.namespace}.svc.{.spec.clusterIP}.svc.{.spec.clusterDomain}')
-            response_code=$(curl -s -o /dev/null -w "%{http_code}" $URL)
-            if [ $response_code -eq 200 ]; then
+            URL=$(kubectl -n app get service app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            curl $URL
+            RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+            if [ $RESPONSE_CODE -eq 200 ]; then
               echo "Deployment test succeeded."
             else
               echo "Deployment test failed. Received HTTP response code $response_code."
