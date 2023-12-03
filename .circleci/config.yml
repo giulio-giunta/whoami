@@ -22,7 +22,7 @@ jobs:
             cd app
             make test > /tmp/test-reports/tests.xml
       - store_test_results:
-          path: /tmp/test-reports
+          path: /tmp/test-reports/tests.xml
       - run:
           name: Lint the code
           command: |
