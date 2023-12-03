@@ -2,18 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: whoami
-  name: whoami
+    app: app
+  name: app
   namespace: app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: whoami
+      app: app
   template:
     metadata:
       labels:
-        app: whoami
+        app: app
     spec:
       containers:
         - image: ggiunta/whoami:$TAG

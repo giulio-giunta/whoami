@@ -91,9 +91,10 @@ jobs:
       - run:
           name: Retrieve url and test the application
           command: |
-            url=$(kubectl -n whoami get svc whoami -ojsonpath='{.metadata.name}.svc.{.metadata.namespace}.svc.{.spec.clusterIP}.svc.{.spec.clusterDomain}')
-            response_code=$(curl -s -o /dev/null -w "%{http_code}" $URL)
-            if [ $response_code -eq 200 ]; then
+            URL=$(kubectl -n app get service app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            curl $URL
+            RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+            if [ $RESPONSE_CODE -eq 200 ]; then
               echo "Deployment test succeeded."
             else
               echo "Deployment test failed. Received HTTP response code $response_code."
