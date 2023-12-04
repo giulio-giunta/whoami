@@ -8,4 +8,5 @@ aws eks --region $region update-kubeconfig --name $cluster_name
 kubectl delete ns app
 
 # Delete the EKS cluster and VPC.
+terraform init
 terraform destroy --auto-approve
