@@ -11,20 +11,20 @@ jobs:
       - setup_remote_docker
       - checkout
       - run:
-          name: Compile the application
+          name: Lint the code
           command: |
             cd app
-            make build
+            make check
       - run:
           name: Run tests
           command: |
             cd app
             make test
       - run:
-          name: Lint the code
+          name: Compile the application
           command: |
             cd app
-            make check
+            make build
       - run:
           name: Build the image
           command: |
