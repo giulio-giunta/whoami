@@ -88,6 +88,8 @@ jobs:
       - run:
           name: Retrieve url and test the application
           command: |
+            # Allow some time to the loadbalancer to come online
+            sleep 60
             URL=$(kubectl -n app get service app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
             curl $URL
             RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
