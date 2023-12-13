@@ -41,7 +41,6 @@ jobs:
       - image: cimg/base:2022.04
     environment:
       TAG: 0.1.<< pipeline.number >>
-      IMAGE: ggiunta/whoami
     steps:
       - checkout
       - run:
@@ -70,7 +69,6 @@ jobs:
       - image: cimg/aws:2023.09
     environment:
       TAG: 0.1.<< pipeline.number >>
-      IMAGE: ggiunta/whoami
     steps:
       - checkout
       - run:
